@@ -12,6 +12,13 @@
 # be paranoid
 export LC_ALL ?= C
 
+######## Ubuntu changes
+# no chance that pkg-create-dbgsym can cope with this package's manual construction of -dbg
+export NO_PKG_MANGLE=1
+# Set SKIP_DIETLIBC to not build-depend on dietlibc-dev, which is universe.
+export SKIP_DIETLIBC=yes
+########
+
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
 DEB_HOST_ARCH		?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
@@ -97,6 +104,7 @@ UUID_UDEB_PRIORITY ?= $(shell grep '^Package: libuuid1-udeb' debian/control.in -
 endif
 
 STAMPSDIR	?= debian/stampdir
+AUTOTOOLSSTAMP	?= ${STAMPSDIR}/autotools-stamp
 CFGSTDSTAMP	?= ${STAMPSDIR}/configure-std-stamp
 CFGBFSTAMP	?= ${STAMPSDIR}/configure-bf-stamp
 CFGSTATICSTAMP	?= ${STAMPSDIR}/configure-static-stamp
@@ -262,7 +270,12 @@ debian/control: debian/control.in debian/rules
 debian/e2fsprogs.shlibs.local: debian/e2fsprogs.shlibs.local.in
 	m4 $(M4_ARGS) < debian/e2fsprogs.shlibs.local.in > $@
 
-${CFGSTDSTAMP}:
+${AUTOTOOLSSTAMP}:
+	dh_autotools-dev_updateconfig
+	mkdir -p ${STAMPSDIR}
+	touch ${AUTOTOOLSSTAMP}
+
+${CFGSTDSTAMP}: ${AUTOTOOLSSTAMP}
 	dh_testdir
 
 	# Make sure we don't try to rebuild the configure scripts
@@ -298,7 +311,7 @@ endif
 	mkdir -p ${STAMPSDIR}
 	touch ${CFGSTDSTAMP}
 
-${CFGBFSTAMP}:
+${CFGBFSTAMP}: ${AUTOTOOLSSTAMP}
 	dh_testdir
 	rm -f config.cache
 
@@ -318,7 +331,7 @@ endif
 	mkdir -p ${STAMPSDIR}
 	touch ${CFGBFSTAMP}
 
-${CFGSTATICSTAMP}:
+${CFGSTATICSTAMP}: ${AUTOTOOLSSTAMP}
 	dh_testdir
 	rm -f config.cache
 
@@ -402,6 +415,7 @@ clean:
 	[ ! -f ${staticbuilddir}/Makefile ] || $(MAKE) -C ${staticbuilddir} V=1 distclean
 	rm -rf ${stdbuilddir} ${bfbuilddir} ${staticbuilddir} ${mipsbuilddir} ${mipsbuilddir64}
 	rm -f debian/*.substvars
+	dh_autotools-dev_restoreconfig
 	dh_clean
 
 install: cleanup install-std
