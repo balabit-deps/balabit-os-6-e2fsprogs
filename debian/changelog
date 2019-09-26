@@ -1,3 +1,13 @@
+e2fsprogs (1.42.13-1ubuntu1.1) xenial-security; urgency=medium
+
+  * SECURITY UPDATE: Out-of-bounds write on the heap
+    - debian/patches/CVE-2019-5094.patch: add checks to prevent
+      buffer overrun in quota code in lib/quota/quotaio_tree.c,
+      lib/quota/quotaio_v2.c, lib/quota/mkquota.c.
+    - CVE-2019-5094
+
+ -- Leonidas S. Barbosa <leo.barbosa@canonical.com>  Thu, 26 Sep 2019 13:49:59 -0300
+
 e2fsprogs (1.42.13-1ubuntu1) xenial; urgency=medium
 
   * Merge from Debian unstable. Remaining changes:
